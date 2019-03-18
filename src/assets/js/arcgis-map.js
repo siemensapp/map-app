@@ -43,6 +43,17 @@ require([
   boton.onmouseout = function(){
     this.style.backgroundColor = "#fff";
   }
+  
+  boton.onclick = function (){
+    if (navigator.geolocation) {
+      console.log(navigator.geolocation.getCurrentPosition(showPosition));
+    } else {
+      console.log('Something failed !');
+    }
+  };
+  
+  
+  
   view.ui.add(boton, "top-left");
 
 });
