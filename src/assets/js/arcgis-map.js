@@ -7,6 +7,13 @@ require([
 ], function (
     WebMap, MapView, Point, Locator, Graphic
 ) {
+    var latitud=0;
+    var longitud=0;
+    var direccion;
+
+    var workers = {};
+    var clicked = false;
+    var tracking;
 
     var webmap = new WebMap({
         basemap: "topo"
@@ -40,28 +47,52 @@ require([
     // Seccion de geolocalizacion
 
     boton.onclick = function () {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(showPosition);
-        } else {
-            console.log('Something failed !');
+        if (!clicked){
+            startTracking();
+        } else {            
+            stopTracking();
         }
+        
+    };
+
+    function stopTracking() {
+        clearTimeout(tracking);
+        clicked = false;
+    };
+
+    function startTracking() {
+        navigator.geolocation.getCurrentPosition(showPosition);
+        clicked = true;
+        tracking = setTimeout(startTracking, 30000);
     };
 
     function showPosition(position) {
         if (position !== undefined) {
             console.log("Latitude: " + position.coords.latitude +
                 "\nLongitude: " + position.coords.longitude);
-            showOwnLocation(position);
+            showOwnLocation(position, "John Milton");
         }
     }
 
     // Pone el punto en su lugar del mapa
 
-    function showOwnLocation(position) {
-        var currentPosition = new Point({
+    function showOwnLocation(position, worker) {
+
+        view.popup.close();
+        view.graphics.removeAll();
+        
+        workers[worker] = new Point({
             latitude: position.coords.latitude,
             longitude: position.coords.longitude
         });
+        
+        // var currentPosition = new Point({
+        //     latitude: position.coords.latitude,
+        //     longitude: position.coords.longitude
+        // });
+
+        // console.log(currentPosition);
+        console.log(workers);
 
         var locator = new Locator({
             url: "http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
@@ -69,13 +100,14 @@ require([
 
         var pointMap = {
             type: "point",
-            longitude: currentPosition.longitude,
-            latitude: currentPosition.latitude
+            longitude: workers[worker].longitude,
+            latitude: workers[worker].latitude
         };
 
         var markerSymbol = {
             type: "simple-marker",
             color: [226, 119, 40],
+            size: "25px",
             outline: {
                 color: [255, 255, 255],
                 width: 2
@@ -93,26 +125,42 @@ require([
 
         // Servicio de Geocoder de Arcgis
 
-        locator.locationToAddress(currentPosition).then(function (response) {
+        locator.locationToAddress(workers[worker]).then(function (response) {
             var address = response.attributes;
-            showInfo(currentPosition, address);
+            showInfo(workers[worker], address);
         }, function (err) {
             console.log('Error on locator element.');
         })
     }
 
     function showInfo(position, address) {
-        var currentPosition = new Point({
-            latitude: position.latitude,
-            longitude: position.longitude
-        });
-
+        latitud=position.latitude;
+        longitud=position.longitude;
+        direccion=address;
         view.popup.open({
             title: "John Milton",
-            content: "Servicio de Field Service<br>" + address.CountryCode + ", " + address.City + ", " + address.PlaceName,            
+            content: "Servicio de Field Service<br>[ " + longitud + ", " + latitud + " ]<br>" + address.CountryCode + ", " + address.City + ", " + address.PlaceName,            
             location: currentPosition
         })
-    };    
+    };
+
     view.ui.add(boton, "top-left");
+    
+    view.on("click", function(event) {
+
+        // Get the coordinates of the click on the view
+        var lat = Math.round(event.mapPoint.latitude * 1000) / 1000;
+        var la = lat.toFixed(3);
+        var lon = Math.round(event.mapPoint.longitude * 1000) / 1000;
+        var lo = lon.toFixed(3);
+        if(latitud.toFixed(3) == la && longitud.toFixed(3) == lo){
+        view.popup.open({
+          // Set the popup's title to the coordinates of the location
+          title: "John Milton",  
+          content: "Servicio de Filed Service<br>"+ direccion.CountryCode + ", " + direccion.City +", "+direccion.PlaceName,        
+          location: event.mapPoint // Set the location of the popup to the clicked location
+        });
+        }
+    });
 
 });
