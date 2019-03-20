@@ -3,9 +3,10 @@ require([
   "esri/views/MapView",
   "esri/geometry/Point",
   "esri/tasks/Locator",
+  "esri/request",
   "esri/Graphic"
 ], function (
-  WebMap, MapView, Point, Locator, Graphic
+  WebMap, MapView, Point, Locator, esriRequest, Graphic
 ) {
   var workers = {};
   var clicked = false;
@@ -49,16 +50,6 @@ require([
     }
   };
 
-  function getRecords() {
-    const Http = new XMLHttpRequest();
-    const url = 'http://localhost:3000/api/workers';
-    Http.open("GET", url);
-    Http.send();
-    Http.onreadystatechange = (e) => {
-      console.log(Http.responseText)
-    }
-  };
-
   function stopTracking() {
     clearTimeout(tracking);
     clicked = false;
@@ -81,7 +72,6 @@ require([
   // Pone el punto en su lugar del mapa
 
   function showOwnLocation(position, worker) {
-    getRecords();
     var pointMap, markerSymbol, pointGraphic;
     var address = {};
     view.popup.close();
