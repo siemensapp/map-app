@@ -7,10 +7,6 @@ require([
 ], function (
     WebMap, MapView, Point, Locator, Graphic
 ) {
-    var latitud=0;
-    var longitud=0;
-    var direccion;
-
     var workers = {};
     var clicked = false;
     var tracking;
@@ -77,7 +73,8 @@ require([
     // Pone el punto en su lugar del mapa
 
     function showOwnLocation(position, worker) {
-
+        var pointMap, markerSymbol, pointGraphic;
+        var address={};
         view.popup.close();
         view.graphics.removeAll();
         
@@ -98,69 +95,72 @@ require([
             url: "http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
         });
 
-        var pointMap = {
-            type: "point",
-            longitude: workers[worker].longitude,
-            latitude: workers[worker].latitude
-        };
-
-        var markerSymbol = {
-            type: "simple-marker",
-            color: [226, 119, 40],
-            size: "25px",
-            outline: {
-                color: [255, 255, 255],
-                width: 2
-            }
-        };
-
-        var pointGraphic = new Graphic({
-            geometry: pointMap,
-            symbol: markerSymbol
-        });
-
-        view.graphics.addMany([pointGraphic]);
-
-        console.log('Starting locator');
-
         // Servicio de Geocoder de Arcgis
 
         locator.locationToAddress(workers[worker]).then(function (response) {
-            var address = response.attributes;
-            showInfo(workers[worker], address);
+            address = response.attributes;
+            console.log(address);
+            pointMap = {
+                type: "point",
+                longitude: workers[worker].longitude,
+                latitude: workers[worker].latitude
+            };
+    
+            markerSymbol = {
+                type: "simple-marker",
+                color: [226, 119, 40],
+                size: "25px",
+                outline: {
+                    color: [255, 255, 255],
+                    width: 2
+                }
+            };
+    
+            pointGraphic = new Graphic({
+                geometry: pointMap,
+                symbol: markerSymbol,
+                popupTemplate: {
+                    title : "John Milton",
+                    content: "Servicio de Field Service<br>[ " + workers[worker].longitude + ", " + workers[worker].latitude + " ]<br>" + address.CountryCode + ", " + address.City + ", " + address.PlaceName,            
+                }
+            });
+
+            view.graphics.add(pointGraphic);
+
+            //showInfo(workers[worker], address);
         }, function (err) {
             console.log('Error on locator element.');
         })
     }
 
-    function showInfo(position, address) {
-        latitud=position.latitude;
-        longitud=position.longitude;
-        direccion=address;
-        view.popup.open({
-            title: "John Milton",
-            content: "Servicio de Field Service<br>[ " + longitud + ", " + latitud + " ]<br>" + address.CountryCode + ", " + address.City + ", " + address.PlaceName,            
-            location: currentPosition
-        })
-    };
+    // function showInfo(position, address) {
+    //     latitud=position.latitude;
+    //     longitud=position.longitude;
+    //     direccion=address;
+    //     view.popup.open({
+    //         title: "John Milton",
+    //         content: "Servicio de Field Service<br>[ " + longitud + ", " + latitud + " ]<br>" + address.CountryCode + ", " + address.City + ", " + address.PlaceName,            
+    //         location: currentPosition
+    //     })
+    // };
 
     view.ui.add(boton, "top-left");
     
-    view.on("click", function(event) {
+    // view.on("click", function(event) {
 
-        // Get the coordinates of the click on the view
-        var lat = Math.round(event.mapPoint.latitude * 1000) / 1000;
-        var la = lat.toFixed(3);
-        var lon = Math.round(event.mapPoint.longitude * 1000) / 1000;
-        var lo = lon.toFixed(3);
-        if(latitud.toFixed(3) == la && longitud.toFixed(3) == lo){
-        view.popup.open({
-          // Set the popup's title to the coordinates of the location
-          title: "John Milton",  
-          content: "Servicio de Filed Service<br>"+ direccion.CountryCode + ", " + direccion.City +", "+direccion.PlaceName,        
-          location: event.mapPoint // Set the location of the popup to the clicked location
-        });
-        }
-    });
+    //     // Get the coordinates of the click on the view
+    //     var lat = Math.round(event.mapPoint.latitude * 1000) / 1000;
+    //     var la = lat.toFixed(3);
+    //     var lon = Math.round(event.mapPoint.longitude * 1000) / 1000;
+    //     var lo = lon.toFixed(3);
+    //     if(latitud.toFixed(3) == la && longitud.toFixed(3) == lo){
+    //     view.popup.open({
+    //       // Set the popup's title to the coordinates of the location
+    //       title: "John Milton",  
+    //       content: "Servicio de Filed Service<br>"+ address.CountryCode + ", " + address.City +", "+address.PlaceName,        
+    //       location: event.mapPoint // Set the location of the popup to the clicked location
+    //     });
+    //     }
+    // });
 
 });
