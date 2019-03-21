@@ -25,18 +25,18 @@ require([
     zoom: 16
   });
 
-  function pedirDatos() {
+  async function pedirDatos() {
     var options = {
       query: {
         f: "json"
       },
       responseType: "json"
     }
-
-    esriRequest("https://7ca35b60.ngrok.io/api/workers", options).then(function (response) {
-      return response;
+    var respuesta = null;
+    await esriRequest("https://7ca35b60.ngrok.io/api/workers", options).then(function (response) {
+      respuesta = response;
     })
-    return null;
+    return respuesta;
   };
 
   // Se crea el boton para utilizar el API de Geolocalizacion de HTML5
@@ -72,16 +72,10 @@ require([
   };
 
   function startTracking() {
-    navigator.geolocation.getCurrentPosition(showPosition);
     clicked = true;
+    showWorkers();
     tracking = setTimeout(startTracking, 30000);
   };
-
-  function showPosition(position) {
-    if (position !== undefined) {
-        showOwnLocation(position, "John Milton");
-    }
-  }
 
   var locator = new Locator({
     url: "http://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
@@ -89,28 +83,24 @@ require([
 
   // Pone el punto en su lugar del mapa
 
-  function showOwnLocation(position, worker) {
-    var pointMap, markerSymbol, pointGraphic;
+  async function showWorkers() {
     var address = {};
     view.popup.close();
     view.graphics.removeAll();
-    var resultados = pedirDatos();
+    var resultados = await pedirDatos();
     if (resultados !== null) {
       for (var i = 0; i < resultados.data.length; i++) {
-        var nombre = resultados.data[i].Nombre;
-        var coords = resultados.data[i].CoordenadasEspecialista.split(",");
-
+        let pointMap, markerSymbol;
+        let nombre = resultados.data[i].Nombre;
+        let coords = resultados.data[i].CoordenadasEspecialista.split(",");
         workers[nombre] = new Point({
-          latitude: coords[0],
-          longitude: coords[1]
+          latitude: coords[1],
+          longitude: coords[0]
         });
-        console.log(workers);
-
         // Servicio de Geocoder de Arcgis
 
         locator.locationToAddress(workers[nombre]).then(function (response) {
           address = response.attributes;
-          console.log(address);
           pointMap = {
             type: "point",
             longitude: workers[nombre].longitude,
@@ -127,22 +117,23 @@ require([
             }
           };
 
-          pointGraphic = new Graphic({
-            geometry: pointMap,
-            symbol: markerSymbol,
-            popupTemplate: {
-              title: nombre,
-              content: "Servicio de Field Service<br>[ " + workers[nombre].longitude + ", " + workers[nombre].latitude + " ]<br>" + address.CountryCode + ", " + address.City + ", " + address.PlaceName,
-            }
-          });
+          view.graphics.add(
+            new Graphic({
+              geometry: pointMap,
+              symbol: markerSymbol,
+              popupTemplate: {
+                title: nombre,
+                content: "Servicio de Field Service<br>[ " + workers[nombre].longitude + ", " + workers[nombre].latitude + " ]<br>" + address.CountryCode + ", " + address.City + ", " + address.PlaceName,
+              }
+            })
+            );
 
-          view.graphics.add(pointGraphic);
-
-          //showInfo(workers[worker], address);
         }, function (err) {
           console.log('Error on locator element.');
         })
       }
+
+
     }
 
 
