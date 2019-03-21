@@ -33,7 +33,7 @@ require([
       responseType: "json"
     }
     var respuesta = null;
-    await esriRequest("https://7ca35b60.ngrok.io/api/workers", options).then(function (response) {
+    await esriRequest("https://1dc23477.ngrok.io/api/workers", options).then(function (response) {
       respuesta = response;
     })
     return respuesta;
@@ -90,7 +90,7 @@ require([
     var resultados = await pedirDatos();
     if (resultados !== null) {
       for (var i = 0; i < resultados.data.length; i++) {
-        let pointMap, markerSymbol;
+        let pointMap, markerSymbol, textSymbol, markerSymbol2;
         let nombre = resultados.data[i].Nombre;
         let coords = resultados.data[i].CoordenadasEspecialista.split(",");
         workers[nombre] = new Point({
@@ -117,16 +117,41 @@ require([
             }
           };
 
+          markerSymbol2 = {
+            type: "simple-marker",
+            color: [255,255,255],
+            size: "40px",
+            outline: {
+              color: [100, 119, 40],
+              width: 3
+            }
+          };
+
+          textSymbol = {
+              type: "text",
+              text: "BR"
+          };
+
           view.graphics.add(
             new Graphic({
               geometry: pointMap,
-              symbol: markerSymbol,
+              symbol: markerSymbol2,
               popupTemplate: {
                 title: nombre,
                 content: "Servicio de Field Service<br>[ " + workers[nombre].longitude + ", " + workers[nombre].latitude + " ]<br>" + address.CountryCode + ", " + address.City + ", " + address.PlaceName,
               }
             })
             );
+            view.graphics.add(
+              new Graphic({
+                geometry: pointMap,
+                symbol: textSymbol,
+                popupTemplate: {
+                  title: nombre,
+                  content: "Servicio de Field Service<br>[ " + workers[nombre].longitude + ", " + workers[nombre].latitude + " ]<br>" + address.CountryCode + ", " + address.City + ", " + address.PlaceName,
+                }
+              })
+              );
 
         }, function (err) {
           console.log('Error on locator element.');
