@@ -1,7 +1,34 @@
-html, body, #viewDiv {
+html, body{
     padding: 0;
     margin: 0;
     height: 100%;
     width: 100%;
-    
+    display: flex;
+    flex-direction: row; 
+}
+
+#viewDiv{
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    width: 60%;
+    float: right;
+}
+
+#tablaField{
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    width: 40%;
+    float: left;
+    background-color:#009999;
+}
+
+#tabla{
+    background-color: antiquewhite;
+    border-radius: 10px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+
 }
