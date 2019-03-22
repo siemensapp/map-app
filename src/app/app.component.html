@@ -1,5 +1,27 @@
 <!--The content below is only a placeholder and can be replaced.-->
-<div id="creacion"></div>
-<div id="tablaField"><div id="tabla">Jhon Milton El Pana</div></div>
-<div id="viewDiv"></div>
 
+<div id=barraNavegacion>
+  <div id="creacion">
+    <button type="button" class="btnNavbar">+ Especialista</button>
+    <button type="button" class="btnNavbar">+ Asignacion</button>
+  </div>
+  <div id="tablaField">
+    <div *ngFor = "let resultado of Resultados">
+      <div class="sobreTabla"><i class="fas fa-circle" [ngStyle]="{'color': setColor(resultado.NombreS)}"></i>{{resultado.NombreS}}</div>
+      <div class="tabla">
+        <div class="tablaLeft">
+          <img [ngStyle]="{'border-color': setColor(resultado.NombreS)}" src="http://icons.iconarchive.com/icons/paomedia/small-n-flat/512/user-male-icon.png">
+          <div class="tablaLeftDatos">
+            {{resultado.NombreE}}<br>
+            {{resultado.Celular}}<br>
+            {{resultado.NombreT}}
+          </div>
+        </div>
+        <div class="tablaRight">
+          <i class="fas fa-ellipsis-v"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="viewDiv"></div>
