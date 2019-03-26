@@ -33,7 +33,7 @@ require([
         responseType: "json"
       }
       var respuesta = null;
-      await esriRequest("https://aa7db7ec.ngrok.io/api/workers", options).then(function (response) {
+      await esriRequest("https://962080e4.ngrok.io/api/workers", options).then(function (response) {
         respuesta = response;
       })
       return respuesta;
